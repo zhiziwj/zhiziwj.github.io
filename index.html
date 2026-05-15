@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>zhizi's blog</title>
+    <style>
+        body { background: white; color: black; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; margin: 0; padding: 0; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 40px; }
+        .top-bars { margin-bottom: 50px; border-top: 2px solid black; }
+        .top-bars .bar { border-bottom: 2px solid black; padding: 20px 0; font-size: 24px; letter-spacing: 2px; text-transform: uppercase; }
+        .top-bars a { text-decoration: none; color: black; display: block; }
+        .top-bars a:hover { background: black; color: white; padding-left: 10px; }
+
+        .main-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; height: 60vh; align-items: center; }
+        .left-area { display: flex; flex-direction: column; justify-content: center; }
+        .left-area .line { border-bottom: 2px solid black; padding: 15px 0; font-size: 18px; }
+
+        .right-area { height: 100%; display: flex; justify-content: center; align-items: center; border: 2px solid black; overflow: hidden; position: relative; }
+        .right-area a { display: block; width: 100%; height: 100%; }
+        .right-area img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .right-area:hover { opacity: 0.8; }
+        
+        @media (max-width: 768px) { .main-layout { grid-template-columns: 1fr; height: auto; } .right-area { height: 300px; } }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="top-bars">
+        <div class="bar"><strong>zhizi's blog</strong></div>
+        <a href="article_list.html" class="bar">→ article_list</a>
+        <div class="bar" id="greeting">早上好</div>
+    </div>
+
+    <div class="main-layout">
+        <div class="left-area" id="aboutContainer">
+            <!-- 这里的横线将由 JS 替换为 about.txt 的内容 -->
+            <div class="line">Loading About Text...</div>
+        </div>
+        <div class="right-area">
+            <a href="picture_list.html">
+                <img id="randomImage" src="" alt="随机照片">
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 1. 根据北京时间设置问候语
+    const hour = new Date().getHours();
+    let greet = "";
+    if (hour >= 0 && hour < 6) greet = "凌晨好";
+    else if (hour >= 6 && hour < 12) greet = "早上好";
+    else if (hour >= 12 && hour < 18) greet = "中午好";
+    else greet = "晚上好";
+    document.getElementById('greeting').innerText = greet;
+
+    // 2. 读取 about.txt 替换横线
+    fetch('about.txt')
+        .then(res => res.text())
+        .then(text => {
+            const lines = text.split('\n').filter(line => line.trim() !== '');
+            const container = document.getElementById('aboutContainer');
+            container.innerHTML = '';
+            lines.forEach(line => {
+                const div = document.createElement('div');
+                div.className = 'line';
+                div.innerText = line;
+                container.appendChild(div);
+            });
+        })
+        .catch(err => console.error("读取about.txt失败", err));
+
+    // 3. 随机读取 picture_list.txt 的一张照片展示
+    fetch('picture_list.txt')
+        .then(res => res.text())
+        .then(text => {
+            const images = text.split('\n').filter(line => line.trim() !== '');
+            if (images.length > 0) {
+                const randomIdx = Math.floor(Math.random() * images.length);
+                document.getElementById('randomImage').src = 'picture/' + images[randomIdx];
+            }
+        })
+        .catch(err => console.error("读取图片列表失败", err));
+</script>
+</body>
+</html>

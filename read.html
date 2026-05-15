@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>阅读文章</title>
+    <!-- 引入 marked.js 用来解析 md 语法 -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        body { background: white; color: black; font-family: 'Helvetica Neue', sans-serif; margin: 0; padding: 0; }
+        .header { border-bottom: 2px solid black; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; }
+        .home-btn { border: 2px solid black; padding: 10px 20px; text-decoration: none; color: black; font-weight: bold; text-transform: uppercase; }
+        .home-btn:hover { background: black; color: white; }
+        .content { max-width: 800px; margin: 50px auto; padding: 0 20px; line-height: 1.8; font-size: 18px; }
+        .content h1, .content h2, .content h3 { border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .content blockquote { border-left: 5px solid black; padding-left: 20px; margin: 20px 0; font-style: italic; }
+        .content img { max-width: 100%; border: 1px solid black; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>zhizi's Blog</div>
+        <a href="index.html" class="home-btn">Home</a>
+    </div>
+    <div class="content" id="markdownContent">
+        <p style="text-align: center;">正在加载文章...</p>
+    </div>
+
+    <script>
+        // 获取URL中的file参数
+        const urlParams = new URLSearchParams(window.location.search);
+        const file = urlParams.get('file');
+        
+        if (file) {
+            fetch('blog/' + file)
+                .then(res => {
+                    if (!res.ok) throw new Error("文章不存在");
+                    return res.text();
+                })
+                .then(md => {
+                    // 使用 marked 解析 markdown
+                    const html = marked.parse(md);
+                    document.getElementById('markdownContent').innerHTML = html;
+                })
+                .catch(err => {
+                    document.getElementById('markdownContent').innerHTML = `<h2 style="color: red;">404 文章未找到</h2><p>请确认 blog 文件夹下是否有 ${file} 文件。</p>`;
+                });
+        } else {
+            document.getElementById('markdownContent').innerHTML = "<p>请选择一篇文章阅读。</p>";
+        }
+    </script>
+</body>
+</html>
