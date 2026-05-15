@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>阅读文章</title>
-    <!-- 引入 marked.js 用来解析 md 语法 -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- 引入 marked.js 用来解析 md 语法，固定版本确保稳定 -->
+    <script src="https://cdn.jsdelivr.net/npm/marked@13.0.3/marked.min.js"></script>
     <style>
         body { background: white; color: black; font-family: 'Helvetica Neue', sans-serif; margin: 0; padding: 0; }
         .header { border-bottom: 2px solid black; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; }
@@ -15,6 +15,9 @@
         .content h1, .content h2, .content h3 { border-bottom: 1px solid #eee; padding-bottom: 10px; }
         .content blockquote { border-left: 5px solid black; padding-left: 20px; margin: 20px 0; font-style: italic; }
         .content img { max-width: 100%; border: 1px solid black; }
+        /* 修复一些 Markdown 样式 */
+        .content pre { background: #f4f4f4; padding: 15px; border: 1px solid #ddd; overflow-x: auto; }
+        .content code { background: #f4f4f4; padding: 2px 5px; border-radius: 3px; font-family: monospace; }
     </style>
 </head>
 <body>
@@ -32,18 +35,33 @@
         const file = urlParams.get('file');
         
         if (file) {
+            // 1. 尝试加载 Markdown 文件
             fetch('blog/' + file)
                 .then(res => {
-                    if (!res.ok) throw new Error("文章不存在");
+                    if (!res.ok) throw new Error(`HTTP ${res.status} - 文件 ${file} 在 blog 文件夹中可能不存在`);
                     return res.text();
                 })
                 .then(md => {
-                    // 使用 marked 解析 markdown
-                    const html = marked.parse(md);
-                    document.getElementById('markdownContent').innerHTML = html;
+                    // 2. 使用 marked 解析 markdown (使用最稳妥的 marked() 函数)
+                    try {
+                        // 旧版稳妥方法：
+                        const html = marked(md); 
+                        document.getElementById('markdownContent').innerHTML = html;
+                    } catch (parseError) {
+                        document.getElementById('markdownContent').innerHTML = `
+                            <h2 style="color: red;">Markdown 解析错误</h2>
+                            <p>请查看浏览器控制台 (F12) 获取详细信息。</p>
+                            <pre>${parseError.message}</pre>
+                        `;
+                        throw parseError;
+                    }
                 })
                 .catch(err => {
-                    document.getElementById('markdownContent').innerHTML = `<h2 style="color: red;">404 文章未找到</h2><p>请确认 blog 文件夹下是否有 ${file} 文件。</p>`;
+                    document.getElementById('markdownContent').innerHTML = `
+                        <h2 style="color: red;">文章加载失败</h2>
+                        <p>请确保 blog 文件夹下有 <strong>${file}</strong> 文件。</p>
+                        <p>详细错误信息：${err.message}</p>
+                    `;
                 });
         } else {
             document.getElementById('markdownContent').innerHTML = "<p>请选择一篇文章阅读。</p>";
