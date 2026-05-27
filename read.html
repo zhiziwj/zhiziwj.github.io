@@ -4,27 +4,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>阅读文章</title>
-    <!-- 引入 marked.js -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         body { background: white; color: black; font-family: 'Helvetica Neue', sans-serif; margin: 0; padding: 0; }
         .header { border-bottom: 2px solid black; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; }
         .home-btn { border: 2px solid black; padding: 10px 20px; text-decoration: none; color: black; font-weight: bold; text-transform: uppercase; }
         .home-btn:hover { background: black; color: white; }
         .content { max-width: 800px; margin: 50px auto; padding: 0 20px; line-height: 1.8; font-size: 18px; word-break: break-all;}
-        .content h1, .content h2, .content h3 { border-bottom: 1px solid #eee; padding-bottom: 10px; }
-        .content blockquote { border-left: 5px solid black; padding-left: 20px; margin: 20px 0; font-style: italic; color: #666; background: #f9f9f9;}
-        .content img { max-width: 100%; border: 1px solid black; display: block; margin: 20px auto;}
-        .content pre { background: #272822; color: #f8f8f2; padding: 12px; border-radius: 6px; overflow-x: auto; }
-        .content code { background: #f4f4f4; color: #c7254e; padding: 2px 4px; border-radius: 4px; }
-        .content table { border-collapse: collapse; width: 100%; margin: 20px 0; }
-        .content th, .content td { border: 1px solid #bbb; padding: 8px; text-align: left; }
-        .content th { background: #f0f0f0;}
+        .content h1, .content h2, .content h3 { border-bottom: 1px solid #eee; padding-bottom: 10px; margin-top: 32px; }
+        .custom-code-block {
+            background: #f4f4f4;
+            border: 2px solid #666;
+            border-radius: 8px;
+            margin: 24px 0;
+            padding: 16px;
+            overflow-x: auto;
+        }
+        .custom-code-block pre {
+            margin: 0;
+            background: transparent;
+            color: #222;
+            font-size: 16px;
+            font-family: "Fira Mono", "monospace", "Consolas";
+        }
     </style>
-    <!-- 引入 Prism.js 用于代码高亮（可选） -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-markdown.min.js"></script>
 </head>
 <body>
     <div class="header">
@@ -35,25 +37,51 @@
         <p style="text-align: center;">正在加载文章...</p>
     </div>
     <script>
-        // marked 配置
-        marked.setOptions({
-            gfm: true,
-            breaks: true,
-            headerIds: true,
-            mangle: false, // 避免 header 被编码
-            highlight: function(code, lang) {
-                if (window.Prism && Prism.languages[lang]) {
-                    return Prism.highlight(code, Prism.languages[lang], lang);
-                }
-                return code; // 无高亮
-            }
-        });
-
-        // 获取URL中的file参数
+        // 获取URL中的 file 参数
         const urlParams = new URLSearchParams(window.location.search);
         const file = urlParams.get('file');
-
         const markdownDiv = document.getElementById('markdownContent');
+
+        function escapeHtml(str) {
+            return str.replace(/[&<>"']/g, (c) =>
+                ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]
+            );
+        }
+
+        function customMarkdownParse(md) {
+            const lines = md.split('\n');
+            let html = '';
+            let inCode = false;
+            let codeBuffer = [];
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+
+                if (!inCode && line.trim().startsWith('~~~')) {
+                    inCode = true;
+                    codeBuffer = [];
+                } else if (inCode && line.trim().startsWith('~~~')) {
+                    // 代码块结束
+                    html += `<div class="custom-code-block"><pre><code>${escapeHtml(codeBuffer.join('\n'))}</code></pre></div>\n`;
+                    inCode = false;
+                } else if (inCode) {
+                    codeBuffer.push(line);
+                } else if (/^#{1,3} /.test(line)) {
+                    // 支持 # ## ### 标题
+                    const pounds = line.match(/^#{1,3}/)[0].length;
+                    const content = escapeHtml(line.slice(pounds + 1));
+                    html += `<h${pounds}>${content}</h${pounds}>\n`;
+                } else if (line.trim() === '') {
+                    html += '';
+                } else {
+                    html += `<p>${escapeHtml(line)}</p>\n`;
+                }
+            }
+            // 防止最后没关的代码块
+            if (inCode && codeBuffer.length) {
+                html += `<div class="custom-code-block"><pre><code>${escapeHtml(codeBuffer.join('\n'))}</code></pre></div>\n`;
+            }
+            return html;
+        }
 
         if (file) {
             fetch('blog/' + file)
@@ -62,11 +90,7 @@
                     return res.text();
                 })
                 .then(md => {
-                    // 转换 Markdown → HTML
-                    const html = marked.parse(md);
-                    markdownDiv.innerHTML = html;
-                    // 代码高亮
-                    if (window.Prism) Prism.highlightAll();
+                    markdownDiv.innerHTML = customMarkdownParse(md);
                 })
                 .catch(err => {
                     markdownDiv.innerHTML = `<h2 style="color: red;">404 文章未找到</h2><p>请确认 blog 文件夹下是否有 ${file} 文件。</p>`;
