@@ -4,18 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>阅读文章</title>
-    <!-- 引入 marked.js 用来解析 md 语法 -->
+    <!-- 引入 marked.js -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
         body { background: white; color: black; font-family: 'Helvetica Neue', sans-serif; margin: 0; padding: 0; }
         .header { border-bottom: 2px solid black; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; }
         .home-btn { border: 2px solid black; padding: 10px 20px; text-decoration: none; color: black; font-weight: bold; text-transform: uppercase; }
         .home-btn:hover { background: black; color: white; }
-        .content { max-width: 800px; margin: 50px auto; padding: 0 20px; line-height: 1.8; font-size: 18px; }
+        .content { max-width: 800px; margin: 50px auto; padding: 0 20px; line-height: 1.8; font-size: 18px; word-break: break-all;}
         .content h1, .content h2, .content h3 { border-bottom: 1px solid #eee; padding-bottom: 10px; }
-        .content blockquote { border-left: 5px solid black; padding-left: 20px; margin: 20px 0; font-style: italic; }
-        .content img { max-width: 100%; border: 1px solid black; }
+        .content blockquote { border-left: 5px solid black; padding-left: 20px; margin: 20px 0; font-style: italic; color: #666; background: #f9f9f9;}
+        .content img { max-width: 100%; border: 1px solid black; display: block; margin: 20px auto;}
+        .content pre { background: #272822; color: #f8f8f2; padding: 12px; border-radius: 6px; overflow-x: auto; }
+        .content code { background: #f4f4f4; color: #c7254e; padding: 2px 4px; border-radius: 4px; }
+        .content table { border-collapse: collapse; width: 100%; margin: 20px 0; }
+        .content th, .content td { border: 1px solid #bbb; padding: 8px; text-align: left; }
+        .content th { background: #f0f0f0;}
     </style>
+    <!-- 引入 Prism.js 用于代码高亮（可选） -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-markdown.min.js"></script>
 </head>
 <body>
     <div class="header">
@@ -25,12 +34,27 @@
     <div class="content" id="markdownContent">
         <p style="text-align: center;">正在加载文章...</p>
     </div>
-
     <script>
+        // marked 配置
+        marked.setOptions({
+            gfm: true,
+            breaks: true,
+            headerIds: true,
+            mangle: false, // 避免 header 被编码
+            highlight: function(code, lang) {
+                if (window.Prism && Prism.languages[lang]) {
+                    return Prism.highlight(code, Prism.languages[lang], lang);
+                }
+                return code; // 无高亮
+            }
+        });
+
         // 获取URL中的file参数
         const urlParams = new URLSearchParams(window.location.search);
         const file = urlParams.get('file');
-        
+
+        const markdownDiv = document.getElementById('markdownContent');
+
         if (file) {
             fetch('blog/' + file)
                 .then(res => {
@@ -38,15 +62,17 @@
                     return res.text();
                 })
                 .then(md => {
-                    // 使用 marked 解析 markdown
+                    // 转换 Markdown → HTML
                     const html = marked.parse(md);
-                    document.getElementById('markdownContent').innerHTML = html;
+                    markdownDiv.innerHTML = html;
+                    // 代码高亮
+                    if (window.Prism) Prism.highlightAll();
                 })
                 .catch(err => {
-                    document.getElementById('markdownContent').innerHTML = `<h2 style="color: red;">404 文章未找到</h2><p>请确认 blog 文件夹下是否有 ${file} 文件。</p>`;
+                    markdownDiv.innerHTML = `<h2 style="color: red;">404 文章未找到</h2><p>请确认 blog 文件夹下是否有 ${file} 文件。</p>`;
                 });
         } else {
-            document.getElementById('markdownContent').innerHTML = "<p>请选择一篇文章阅读。</p>";
+            markdownDiv.innerHTML = "<p>请选择一篇文章阅读。</p>";
         }
     </script>
 </body>
