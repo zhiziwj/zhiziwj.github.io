@@ -10,38 +10,9 @@
         .home-btn { border: 2px solid black; padding: 10px 20px; text-decoration: none; color: black; font-weight: bold; text-transform: uppercase; }
         .home-btn:hover { background: black; color: white; }
         .content { max-width: 800px; margin: 50px auto; padding: 0 20px; line-height: 1.8; font-size: 18px; word-break: break-all;}
-        .content h1 {
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
-            margin-top: 32px;
-            font-size: 2.4em;
-        }
-        .content h2 {
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
-            margin-top: 32px;
-            font-size: 2em;
-        }
-        .content h3 {
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
-            margin-top: 32px;
-            font-size: 1.5em;
-        }
-        .custom-code-block {
-            background: #f4f4f4;
-            border: 2px solid #666;
-            border-radius: 8px;
-            margin: 24px 0;
-            padding: 16px;
-            overflow-x: auto;
-        }
-        .custom-code-block pre {
-            margin: 0;
-            background: transparent;
-            color: #222;
-            font-size: 16px;
-            font-family: "Fira Mono", "monospace", "Consolas";
+        .content pre {
+            white-space: pre-wrap;
+            word-break: break-all;
         }
     </style>
 </head>
@@ -50,55 +21,13 @@
         <div>zhizi's Blog</div>
         <a href="index.html" class="home-btn">Home</a>
     </div>
-    <div class="content" id="markdownContent">
+    <div class="content" id="content">
         <p style="text-align: center;">正在加载文章...</p>
     </div>
     <script>
-        // 获取URL中的 file 参数
         const urlParams = new URLSearchParams(window.location.search);
         const file = urlParams.get('file');
-        const markdownDiv = document.getElementById('markdownContent');
-
-        function escapeHtml(str) {
-            return str.replace(/[&<>"']/g, (c) =>
-                ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]
-            );
-        }
-
-        function customMarkdownParse(md) {
-            const lines = md.split('\n');
-            let html = '';
-            let inCode = false;
-            let codeBuffer = [];
-            for (let i = 0; i < lines.length; i++) {
-                const line = lines[i];
-
-                if (!inCode && line.trim().startsWith('~~~')) {
-                    inCode = true;
-                    codeBuffer = [];
-                } else if (inCode && line.trim().startsWith('~~~')) {
-                    // 代码块结束
-                    html += `<div class="custom-code-block"><pre><code>${escapeHtml(codeBuffer.join('\n'))}</code></pre></div>\n`;
-                    inCode = false;
-                } else if (inCode) {
-                    codeBuffer.push(line);
-                } else if (/^#{1,3} /.test(line)) {
-                    // 支持 # ## ### 标题
-                    const pounds = line.match(/^#{1,3}/)[0].length;
-                    const content = escapeHtml(line.slice(pounds + 1));
-                    html += `<h${pounds}>${content}</h${pounds}>\n`;
-                } else if (line.trim() === '') {
-                    html += '';
-                } else {
-                    html += `<p>${escapeHtml(line)}</p>\n`;
-                }
-            }
-            // 防止最后没关的代码块
-            if (inCode && codeBuffer.length) {
-                html += `<div class="custom-code-block"><pre><code>${escapeHtml(codeBuffer.join('\n'))}</code></pre></div>\n`;
-            }
-            return html;
-        }
+        const contentDiv = document.getElementById('content');
 
         if (file) {
             fetch('blog/' + file)
@@ -106,14 +35,14 @@
                     if (!res.ok) throw new Error("文章不存在");
                     return res.text();
                 })
-                .then(md => {
-                    markdownDiv.innerHTML = customMarkdownParse(md);
+                .then(text => {
+                    contentDiv.innerHTML = `<pre>${text}</pre>`;
                 })
                 .catch(err => {
-                    markdownDiv.innerHTML = `<h2 style="color: red;">404 文章未找到</h2><p>请确认 blog 文件夹下是否有 ${file} 文件。</p>`;
+                    contentDiv.innerHTML = `<p style="color: red;">404 文章未找到</p><p>请确认 blog 文件夹下是否有 ${file} 文件。</p>`;
                 });
         } else {
-            markdownDiv.innerHTML = "<p>请选择一篇文章阅读。</p>";
+            contentDiv.innerHTML = "<p>请选择一篇文章阅读。</p>";
         }
     </script>
 </body>

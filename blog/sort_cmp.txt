@@ -1,0 +1,20 @@
+最近一天的一次愉快的刷题，我苦苦找不到一个RE的测试点，经过了漫长的排查发现了以下这个
+
+bool cmp(grass a,grass b){
+	return a.x<=b.x;
+}
+
+最开始我也对于这段代码的错误不敢置信，但是这就引出来了cpp的sort函数比较函数的设计要求
+
+它需要满足反自反性、非对称性、传递性，用形式化表达如下:
+
+∀x:cmp(x,x)=false
+∀x,y:(cmp(x,y)=true)->(cmp(y,x)=false)
+∀x,y,z:cmp(x,y)=true&cmp(y,z)=true->cmp(x,z)=true
+因此我的函数很明显并不满足反自反性与非对称性，在我改为
+
+bool cmp(grass a,grass b){
+	return a.x<b.x;
+}
+
+后就轻松通过了，在此警示。
