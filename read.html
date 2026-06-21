@@ -9,11 +9,8 @@
         .header { border-bottom: 2px solid black; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; }
         .home-btn { border: 2px solid black; padding: 10px 20px; text-decoration: none; color: black; font-weight: bold; text-transform: uppercase; }
         .home-btn:hover { background: black; color: white; }
-        .content { max-width: 800px; margin: 50px auto; padding: 0 20px; line-height: 1.8; font-size: 18px; word-break: break-all;}
-        .content pre {
-            white-space: pre-wrap;
-            word-break: break-all;
-        }
+        html, body { min-height: 100vh; }
+        .content { max-width: 800px; margin: 50px auto; padding: 0 20px; line-height: 1.8; font-size: 18px; word-break: break-all; }
     </style>
 </head>
 <body>
@@ -36,7 +33,12 @@
                     return res.text();
                 })
                 .then(text => {
-                    contentDiv.innerHTML = `<pre>${text}</pre>`;
+                    contentDiv.innerHTML = '';
+                    const pre = document.createElement('pre');
+                    pre.style.whiteSpace = 'pre-wrap';
+                    pre.style.wordBreak = 'break-all';
+                    pre.textContent = text;
+                    contentDiv.appendChild(pre);
                 })
                 .catch(err => {
                     contentDiv.innerHTML = `<p style="color: red;">404 文章未找到</p><p>请确认 blog 文件夹下是否有 ${file} 文件。</p>`;
