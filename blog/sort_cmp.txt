@@ -5,9 +5,7 @@ bool cmp(grass a,grass b){
 }
 
 最开始我也对于这段代码的错误不敢置信，但是这就引出来了cpp的sort函数比较函数的设计要求
-
 它需要满足反自反性、非对称性、传递性，用形式化表达如下:
-
 ∀x:cmp(x,x)=false
 ∀x,y:(cmp(x,y)=true)->(cmp(y,x)=false)
 ∀x,y,z:cmp(x,y)=true&cmp(y,z)=true->cmp(x,z)=true
