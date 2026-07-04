@@ -21,3 +21,5 @@ for(int i=s;i<=n;i++){
 		ans=max(ans,sum[i]-sum[que.front()]);
 	}
 }
+
+完
