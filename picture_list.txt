@@ -1,1 +1,5 @@
 profile.jpg
+profile_2.jpg
+lily1.png
+lily2.png
+lily3.png
