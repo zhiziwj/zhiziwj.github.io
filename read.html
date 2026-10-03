@@ -3,49 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>阅读文章</title>
-    <style>
-        body { background: white; color: black; font-family: 'Helvetica Neue', sans-serif; margin: 0; padding: 0; }
-        .header { border-bottom: 2px solid black; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; }
-        .home-btn { border: 2px solid black; padding: 10px 20px; text-decoration: none; color: black; font-weight: bold; text-transform: uppercase; }
-        .home-btn:hover { background: black; color: white; }
-        html, body { min-height: 100vh; }
-        .content { max-width: 800px; margin: 50px auto; padding: 0 20px; line-height: 1.8; font-size: 18px; word-break: break-all; }
-    </style>
+    <title>阅读 — zhizi</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="header">
-        <div>zhizi's Blog</div>
-        <a href="index.html" class="home-btn">Home</a>
-    </div>
-    <div class="content" id="content">
-        <p style="text-align: center;">正在加载文章...</p>
-    </div>
-    <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const file = urlParams.get('file');
-        const contentDiv = document.getElementById('content');
 
-        if (file) {
-            fetch('blog/' + file)
-                .then(res => {
-                    if (!res.ok) throw new Error("文章不存在");
-                    return res.text();
-                })
-                .then(text => {
-                    contentDiv.innerHTML = '';
-                    const pre = document.createElement('pre');
-                    pre.style.whiteSpace = 'pre-wrap';
-                    pre.style.wordBreak = 'break-all';
-                    pre.textContent = text;
-                    contentDiv.appendChild(pre);
-                })
-                .catch(err => {
-                    contentDiv.innerHTML = `<p style="color: red;">404 文章未找到</p><p>请确认 blog 文件夹下是否有 ${file} 文件。</p>`;
-                });
-        } else {
-            contentDiv.innerHTML = "<p>请选择一篇文章阅读。</p>";
-        }
-    </script>
+    <header class="site-header wrap">
+        <a class="site-header__brand" href="index.html">ZHIZI<span class="dot">.</span>BLOG</a>
+        <nav class="site-header__nav meta" aria-label="主导航">
+            <a href="article_list.html">文章索引</a>
+            <a href="index.html">首页</a>
+        </nav>
+    </header>
+
+    <main class="read wrap">
+        <div class="read__eyebrow">
+            <span class="label"><span class="num">03</span>&nbsp;&nbsp;阅读 / READING</span>
+            <span class="meta" id="fileName"></span>
+        </div>
+
+        <h1 class="h1 read__title" id="articleTitle">加载中</h1>
+
+        <div class="red-bar"></div>
+
+        <article class="prose" id="content">正在加载文章…</article>
+    </main>
+
+    <footer class="site-footer wrap">
+        <div class="site-footer__row">
+            <span class="meta">© 2026 ZHIZI</span>
+            <a class="meta" href="article_list.html">← 返回文章索引 / INDEX</a>
+            <span class="meta">中国</span>
+        </div>
+    </footer>
+
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const file = urlParams.get('file');
+    const content = document.getElementById('content');
+
+    if (file) {
+        const title = file.replace(/\.(md|txt)$/i, '');
+        document.getElementById('articleTitle').textContent = title;
+        document.getElementById('fileName').textContent = file;
+        document.title = title + ' — zhizi';
+
+        fetch('blog/' + file)
+            .then(res => {
+                if (!res.ok) throw new Error("文章不存在");
+                return res.text();
+            })
+            .then(text => {
+                content.classList.remove('prose--error');
+                content.textContent = text;
+            })
+            .catch(err => {
+                content.classList.add('prose--error');
+                content.textContent = '404 — 文章未找到\n\n请确认 blog 文件夹下是否有 ' + file + ' 文件。';
+            });
+    } else {
+        content.textContent = '请从文章索引中选择一篇文章阅读。';
+    }
+</script>
 </body>
 </html>

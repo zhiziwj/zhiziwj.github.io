@@ -3,64 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Article List</title>
-    <style>
-        body { background: white; color: black; font-family: 'Helvetica Neue', sans-serif; padding: 40px; }
-        h1 { border-bottom: 3px solid black; padding-bottom: 20px; margin-bottom: 40px; }
-        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-        /* 修改了下面这几行 */
-        .card { 
-            border: 2px solid black; 
-            height: 200px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            font-size: 28px;      /* 字体加大到28px */
-            font-weight: bold;    /* 加粗 */
-            transition: 0.2s; 
-            cursor: pointer; 
-            text-align: center; 
-            padding: 10px; 
-            box-sizing: border-box; 
-            word-break: break-word; /* 防止长标题撑破卡片 */
-        }
-        .card:hover { background: black; color: white; }
-        .card a { 
-            color: inherit; 
-            text-decoration: none; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            width: 100%; 
-            height: 100%; 
-        }
-    </style>
+    <title>文章索引 — zhizi</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div style="max-width: 1000px; margin: 0 auto;">
-        <h1>All Articles</h1>
-        <div class="grid" id="articleGrid">
-            <!-- JS 填入 -->
+
+    <header class="site-header wrap">
+        <a class="site-header__brand" href="index.html">ZHIZI<span class="dot">.</span>BLOG</a>
+        <nav class="site-header__nav meta" aria-label="主导航">
+            <a href="index.html">首页</a>
+            <a href="picture_list.html">相册</a>
+        </nav>
+    </header>
+
+    <main>
+        <section class="page-head wrap">
+            <div class="page-head__bar">
+                <span class="label"><span class="num">01</span>&nbsp;&nbsp;文章 / ARTICLES</span>
+                <span class="meta" id="count">—</span>
+            </div>
+            <h1 class="h1 page-head__title">文章索引</h1>
+        </section>
+
+        <div class="wrap"><div class="red-bar"></div></div>
+
+        <div class="article-list wrap" id="articleGrid"></div>
+    </main>
+
+    <footer class="site-footer wrap">
+        <div class="site-footer__row">
+            <span class="meta">© 2026 ZHIZI</span>
+            <a class="meta" href="index.html">← 返回首页 / BACK</a>
+            <span class="meta">中国</span>
         </div>
-        <div style="margin-top: 40px; border-top: 2px solid black; padding-top: 20px;">
-            <a href="index.html" style="text-decoration: none; color: black; font-weight: bold;">← Back to Home</a>
-        </div>
-    </div>
-    <script>
-        fetch('article_list.txt')
-            .then(res => res.text())
-            .then(text => {
-                const files = text.split('\n').filter(line => line.trim() !== '');
-                const grid = document.getElementById('articleGrid');
-                files.forEach(file => {
-                    const card = document.createElement('div');
-                    card.className = 'card';
-                    // 去掉 .md 后缀让标题好看点 (可选)
-                    const title = file.replace('.md', ''); 
-                    card.innerHTML = `<a href="read.html?file=${file}">${title}</a>`;
-                    grid.appendChild(card);
-                });
+    </footer>
+
+<script>
+    const esc = s => String(s).replace(/[&<>"']/g, c => (
+        { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+    ));
+
+    fetch('article_list.txt')
+        .then(res => res.text())
+        .then(text => {
+            const files = text.split('\n').map(l => l.trim()).filter(Boolean);
+            const list = document.getElementById('articleGrid');
+            document.getElementById('count').textContent =
+                '共 ' + String(files.length).padStart(2, '0') + ' 篇';
+
+            list.innerHTML = '';
+            files.forEach((file, i) => {
+                const title = file.replace(/\.(md|txt)$/i, '');
+                const a = document.createElement('a');
+                a.className = 'article-row';
+                a.href = 'read.html?file=' + encodeURIComponent(file);
+                a.innerHTML =
+                    '<span class="article-row__num num">' + String(i + 1).padStart(2, '0') + '</span>' +
+                    '<span class="article-row__title h2">' + esc(title) + '</span>' +
+                    '<span class="article-row__file meta">' + esc(file) + '</span>' +
+                    '<span class="article-row__go meta">阅读 →</span>';
+                list.appendChild(a);
             });
-    </script>
+        })
+        .catch(err => console.error("读取文章列表失败", err));
+</script>
 </body>
 </html>
