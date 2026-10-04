@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>阅读 — zhizi</title>
+    <title>阅读</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
@@ -12,7 +12,7 @@
 <body>
 
     <header class="site-header wrap">
-        <a class="site-header__brand" href="index.html">ZHIZI<span class="dot">.</span>BLOG</a>
+        <a class="site-header__brand" href="index.html"><span class="brand-name"></span><span class="dot">.</span>BLOG</a>
         <nav class="site-header__nav meta" aria-label="主导航">
             <a href="article_list.html">文章索引</a>
             <a href="index.html">首页</a>
@@ -32,15 +32,18 @@
         <article class="prose" id="content">正在加载文章…</article>
     </main>
 
-    <footer class="site-footer wrap">
-        <div class="site-footer__row">
-            <span class="meta">© 2026 ZHIZI</span>
-            <a class="meta" href="article_list.html">← 返回文章索引 / INDEX</a>
-            <span class="meta">中国</span>
-        </div>
-    </footer>
-
 <script>
+    fetch('config.txt')
+        .then(res => res.text())
+        .then(text => {
+            const name = text.split('\n').map(l => l.trim()).filter(Boolean)[0];
+            if (name) {
+                window.siteName = name;
+                document.querySelectorAll('.brand-name').forEach(el => el.textContent = name);
+            }
+        })
+        .catch(err => console.error("读取config.txt失败", err));
+
     const urlParams = new URLSearchParams(window.location.search);
     const file = urlParams.get('file');
     const content = document.getElementById('content');
@@ -49,7 +52,7 @@
         const title = file.replace(/\.(md|txt)$/i, '');
         document.getElementById('articleTitle').textContent = title;
         document.getElementById('fileName').textContent = file;
-        document.title = title + ' — zhizi';
+        document.title = title + (window.siteName ? ' — ' + window.siteName : '');
 
         fetch('blog/' + file)
             .then(res => {

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>zhizi — 个人博客 / index</title>
+    <title></title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
@@ -12,7 +12,7 @@
 <body>
 
     <header class="site-header wrap">
-        <a class="site-header__brand" href="index.html">ZHIZI<span class="dot">.</span>BLOG</a>
+        <a class="site-header__brand" href="index.html"><span class="brand-name"></span><span class="dot">.</span>BLOG</a>
         <nav class="site-header__nav meta" aria-label="主导航">
             <a href="article_list.html">文章</a>
             <a href="picture_list.html">相册</a>
@@ -20,16 +20,10 @@
     </header>
 
     <section class="hero wrap">
-        <div class="hero__top">
-            <span class="label">索引 / INDEX</span>
-            <span class="meta" id="greeting">早上好</span>
-        </div>
-
-        <h1 class="display">ZHIZI</h1>
+        <h1 class="display" id="siteName"></h1>
 
         <div class="hero__bottom">
-            <p class="h2">个人博客 · 相册 · 记录</p>
-            <p class="meta">EST.&nbsp;2026 — ZHIZIWJ.GITHUB.IO</p>
+            <p class="h2" id="siteTagline"></p>
         </div>
     </section>
 
@@ -51,8 +45,9 @@
     <section class="about wrap">
         <div class="grid">
             <div class="about__head">
-                <span class="label"><span class="num">03</span>&nbsp;&nbsp;关于 / ABOUT</span>
-                <span class="meta">ZHIZI — 中国</span>
+                <span class="about__head-num num">03</span>
+                <span class="about__head-title h2">关于</span>
+                <span class="about__head-en meta">ABOUT / <span class="brand-name"></span></span>
             </div>
 
             <div class="about__list" id="aboutContainer">
@@ -68,33 +63,32 @@
                 </a>
                 <figcaption class="figure__cap">
                     <span class="meta"><span class="num">▮</span>&nbsp; 随机影像</span>
-                    <span class="meta">RANDOM / B&amp;W</span>
+                    <span class="meta">RANDOM / COLOR</span>
                 </figcaption>
             </figure>
         </div>
     </section>
-
-    <footer class="site-footer wrap">
-        <div class="site-footer__row">
-            <span class="meta">© 2026 ZHIZI</span>
-            <span class="meta">ZHIZIWJ@OUTLOOK.COM</span>
-            <span class="meta">中国</span>
-        </div>
-    </footer>
 
 <script>
     const esc = s => String(s).replace(/[&<>"']/g, c => (
         { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
     ));
 
-    // 1. 根据本地时间设置问候语
-    const hour = new Date().getHours();
-    let greet;
-    if (hour >= 0 && hour < 6) greet = "凌晨好";
-    else if (hour >= 6 && hour < 12) greet = "早上好";
-    else if (hour >= 12 && hour < 18) greet = "中午好";
-    else greet = "晚上好";
-    document.getElementById('greeting').textContent = greet;
+    // 1. 读取 config.txt：第一行站点名，第二行副标题
+    fetch('config.txt')
+        .then(res => res.text())
+        .then(text => {
+            const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+            if (lines[0]) {
+                document.title = lines[0];
+                document.getElementById('siteName').textContent = lines[0];
+                document.querySelectorAll('.brand-name').forEach(el => el.textContent = lines[0]);
+            }
+            if (lines[1]) {
+                document.getElementById('siteTagline').textContent = lines[1];
+            }
+        })
+        .catch(err => console.error("读取config.txt失败", err));
 
     // 2. 读取 about.txt，渲染为编号信息行
     fetch('about.txt')

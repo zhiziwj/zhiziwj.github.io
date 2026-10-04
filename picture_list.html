@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>相册 — zhizi</title>
+    <title>相册</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
@@ -12,7 +12,7 @@
 <body>
 
     <header class="site-header wrap">
-        <a class="site-header__brand" href="index.html">ZHIZI<span class="dot">.</span>BLOG</a>
+        <a class="site-header__brand" href="index.html"><span class="brand-name"></span><span class="dot">.</span>BLOG</a>
         <nav class="site-header__nav meta" aria-label="主导航">
             <a href="index.html">首页</a>
             <a href="article_list.html">文章</a>
@@ -33,18 +33,21 @@
         <div class="gallery wrap" id="imageGrid"></div>
     </main>
 
-    <footer class="site-footer wrap">
-        <div class="site-footer__row">
-            <span class="meta">© 2026 ZHIZI</span>
-            <a class="meta" href="index.html">← 返回首页 / BACK</a>
-            <span class="meta">中国</span>
-        </div>
-    </footer>
-
 <script>
     const esc = s => String(s).replace(/[&<>"']/g, c => (
         { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
     ));
+
+    fetch('config.txt')
+        .then(res => res.text())
+        .then(text => {
+            const name = text.split('\n').map(l => l.trim()).filter(Boolean)[0];
+            if (name) {
+                document.title = '相册 — ' + name;
+                document.querySelectorAll('.brand-name').forEach(el => el.textContent = name);
+            }
+        })
+        .catch(err => console.error("读取config.txt失败", err));
 
     fetch('picture_list.txt')
         .then(res => res.text())
